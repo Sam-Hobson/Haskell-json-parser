@@ -4,10 +4,6 @@ module Instances where
 
 import qualified Numeric                       as N
 
--- $setup
--- >>> let p = \n -> P (\x -> Result x n)
--- >>> let add = \n -> \m -> P (\x -> Result x (n+m))
-
 data ParseError =
     UnexpectedEof
   | ExpectedEof Input

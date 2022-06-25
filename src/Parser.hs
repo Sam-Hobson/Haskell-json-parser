@@ -14,13 +14,11 @@ failed e = P (\x -> Error e)
 
 -- | Produces a parser that always fails with 'UnexpectedChar' using the given
 -- | character.
--- | Please make this point free!
 unexpectedCharParser :: Char -> Parser a
 unexpectedCharParser c = P $ const (Error (UnexpectedChar c))
 
 -- | Return a parser that succeeds with a character off the input or fails with
 -- an error if the input is empty.
--- | This question has been completed for you such that you can see how the Parser works
 -- >>> parse character "abc"
 -- Result >bc< 'a'
 --
@@ -32,8 +30,6 @@ character = P f
     f ""       = Error UnexpectedEof
     f (x : xs) = Result xs x
 
--- | Write a parser that asserts that there is no remaining input.
---
 -- >>> parse eof ""
 -- Result >< ()
 --
@@ -72,8 +68,6 @@ infixl 3 |||
 -- | Return a parser that continues producing a list of values from the given
 -- parser.
 --
--- /Hint/: Use 'list1', 'pure' and '|||'.
---
 -- >>> parse (list character) ""
 -- Result >< ""
 --
@@ -97,8 +91,6 @@ list p = list1 p ||| pure []
 -- | Return a parser that produces at least one value from the given parser
 -- then continues producing a list of values from the given parser (to
 -- ultimately produce a non-empty list).
--- | We have given a spoiler! Please write this using 'do' notation.
--- /Hint/: Use /bind/ '>>=', 'list' and 'pure'.
 --
 -- >>> parse (list1 (character)) "abc"
 -- Result >< "abc"
@@ -111,18 +103,6 @@ list p = list1 p ||| pure []
 list1 :: Parser a -> Parser [a]
 list1 p = p >>= (\p' -> list p >>= (\p''-> pure (p':p'')))
 
--- ========
--- SPOILER:
--- list1 p = p >>= (\p' -> list p >>= (\p''-> pure (p':p'')))
-
--- | Return a parser that produces a character but fails if:
---
---   * the input is empty; or
---
---   * the character does not satisfy the given predicate.
---
--- /Hint/: Use /bind/ '>>=', 'unexpectedCharParser' and 'character'.
---
 -- >>> parse (satisfy isUpper) "Abc"
 -- Result >bc< 'A'
 --
@@ -145,8 +125,6 @@ satisfy f = do
 --
 --   * the produced character is not equal to the given character.
 --
--- /Hint/: Use the 'satisfy' function.
---
 -- >>> parse (is 'c') "c"
 -- Result >< 'c'
 --
@@ -164,8 +142,6 @@ is c = satisfy (== c)
 --
 --   * the produced character is equal to the given character.
 --
--- /Hint/: Use the 'satisfy' function.
---
 -- >>> parse (isNot 'c') "b"
 -- Result >< 'b'
 --
@@ -182,8 +158,6 @@ isNot c = satisfy (/= c)
 --   * the input is empty; or
 --
 --   * the produced character is not a digit.
---
--- /Hint/: Use the 'satisfy' and 'isDigit' functions.
 digit :: Parser Char
 digit = satisfy isDigit
 
@@ -193,13 +167,9 @@ digit = satisfy isDigit
 --   * the input is empty; or
 --
 --   * the produced character is not a space.
---
--- /Hint/: Use the 'satisfy' and 'isSpace' functions.
 space :: Parser Char
 space = satisfy isSpace
 
--- | Write a parser that will parse zero or more spaces.
---
 -- >>> parse spaces " abc"
 -- Result >abc< " "
 --
@@ -214,8 +184,6 @@ spaces = list (is ' ')
 --   * the input is empty; or
 --
 --   * the first produced character is not a space.
---
--- /Hint/: Use the 'list1' and 'space' functions.
 spaces1 :: Parser String
 spaces1 = list1 (is ' ')
 
@@ -224,8 +192,6 @@ spaces1 = list1 (is ' ')
 --   * the input is empty; or
 --
 --   * the produced character is not lower-case.
---
--- /Hint/: Use the 'satisfy' and 'isLower' functions.
 lower :: Parser Char
 lower = satisfy isLower
 
@@ -234,8 +200,6 @@ lower = satisfy isLower
 --   * the input is empty; or
 --
 --   * the produced character is not upper-case.
---
--- /Hint/: Use the 'satisfy' and 'isUpper' functions.
 upper :: Parser Char
 upper = satisfy isUpper
 
@@ -244,16 +208,11 @@ upper = satisfy isUpper
 --   * the input is empty; or
 --
 --   * the produced character is not alpha.
---
--- /Hint/: Use the 'satisfy' and 'isAlpha' functions.
 alpha :: Parser Char
 alpha = satisfy isAlpha
 
 -- | Return a parser that sequences the given list of parsers by producing all
 -- their results but fails on the first failing parser of the list.
---
--- /Hint/: Use Sequence
---
 --
 -- We want any character, followed by lower case @x@, then any upper case
 -- letter.
@@ -271,8 +230,6 @@ sequenceParser = sequence
 -- parser.  This parser fails if the given parser fails in the attempt to
 -- produce the given number of values.
 --
--- /Hint/: Use 'sequenceParser' and 'replicate'.
---
 -- >>> parse (thisMany 4 upper) "ABCDef"
 -- Result >ef< "ABCD"
 --
@@ -282,8 +239,6 @@ thisMany :: Int -> Parser a -> Parser [a]
 thisMany n l = sequenceParser (replicate n l)
 
 -- | Write a function that parses the given string (fails otherwise).
---
--- /Hint/: Use 'is' and 'traverse'.
 --
 -- >>> parse (string "abc") "abcdef"
 -- Result >def< "abc"
@@ -295,8 +250,6 @@ string = traverse is
 
 -- | Write a function that applies the given parser, then parses 0 or more
 -- spaces, then produces the result of the original parser.
---
--- /Hint/: Use the monad instance and do notation.
 --
 -- >>> parse (tok (is 'a')) "a bc"
 -- Result >bc< 'a'
@@ -316,13 +269,9 @@ tok p = do
 --
 -- >>> isErrorResult (parse (charTok 'a') "dabc")
 -- True
---
--- /Hint/: Use 'tok' and 'is'.
 charTok :: Char -> Parser Char
 charTok = tok . is
 
--- | Write a parser that parses a comma ',' followed by 0 or more spaces.
---
 -- >>> parse commaTok ",123"
 -- Result >123< ','
 --
@@ -333,11 +282,6 @@ charTok = tok . is
 commaTok :: Parser Char
 commaTok = charTok ','
 
--- | Write a function that parses the given string, followed by 0 or more
--- spaces.
---
--- /Hint/: Use 'tok' and 'string'.
---
 -- >>> parse (stringTok "abc") "abc  "
 -- Result >< "abc"
 --
@@ -346,14 +290,6 @@ commaTok = charTok ','
 stringTok :: String -> Parser String
 stringTok = tok . string
 
--- | Write a function that produces a non-empty list of values coming off the
--- given parser (which must succeed at least once), separated by the second
--- given parser.
---
--- /Hint/: Use 'list' and the monad instance.
---
--- /Hint/: Use >> to ignore the results of a parser.
---
 -- >>> parse (sepby1 character (is ',')) "a"
 -- Result >< "a"
 --
@@ -368,11 +304,6 @@ stringTok = tok . string
 sepby1 :: Parser a -> Parser s -> Parser [a]
 sepby1 pa ps = (:) <$> pa <*> list (ps >> pa)
 
--- | Write a function that produces a list of values coming off the given
--- parser, separated by the second given parser.
---
--- /Hint/: Use 'sepby1' and '|||'.
---
 -- >>> parse (sepby character (is ',')) ""
 -- Result >< ""
 --
@@ -387,10 +318,6 @@ sepby1 pa ps = (:) <$> pa <*> list (ps >> pa)
 sepby :: Parser a -> Parser s -> Parser [a]
 sepby pa ps = sepby1 pa ps ||| pure []
 
--- | Write a function that parses one of the characters in the given string.
---
--- /Hint/: Use 'satisfy' and 'elem'.
---
 -- >>> parse (oneof "abc") "bcdef"
 -- Result >cdef< 'b'
 --
@@ -399,11 +326,6 @@ sepby pa ps = sepby1 pa ps ||| pure []
 oneof :: String -> Parser Char
 oneof s = satisfy (`elem` s)
 
--- | Write a function that parses any character, but fails if it is in the
--- given string.
---
--- /Hint/: Use 'satisfy' and 'notElem'.
---
 -- >>> parse (noneof "bcd") "abc"
 -- Result >bc< 'a'
 --
@@ -451,45 +373,3 @@ chain p op = p >>= rest
                b <- p
                rest (f a b)
             ) ||| pure a
-
-
-data RockPaperScissors = Rock | Paper | Scissors
-
-instance Show RockPaperScissors where
-  show :: RockPaperScissors -> String
-  show Rock = "R"
-  show Paper = "P"
-  show Scissors = "S"
-
-rock :: Parser RockPaperScissors
-rock = is 'R' >> pure Rock
-
-scissors :: Parser RockPaperScissors
-scissors = is 'S' >> pure Scissors
-
-paper :: Parser RockPaperScissors
-paper = is 'P' >> pure Paper
-
-choice :: Parser RockPaperScissors
-choice = rock ||| paper ||| scissors
-
-getMem :: ParseResult a -> a
-getMem (Result _ cs) = cs
-getMem (Error _) = error "You should not do that!"
-
--- winAgainst :: RockPaperScissors -> RockPaperScissors
--- winAgainst rps = undefined
-
--- mostCommon :: [RockPaperScissors] -> RockPaperScissors
--- mostCommon = undefined
-
--- data Played = Played {rocks, papers, scissors :: Int}
-
--- convert :: Played -> String
--- convert Played{rocks, papers, scissors} = undefined
-
--- play (Just (_, opponent, mem)) = (winning whole, concatMap convert whole)
---   where
---     as_choices = getMem . parse (list choice)
---     whole = opponent: as_choices mem
---     winning = winAgainst Rock

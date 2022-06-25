@@ -21,12 +21,6 @@ data JsonValue =
    | JsonNull
   deriving (Show, Eq)
 
--- | Write a function that applies the first parser, runs the third parser
--- keeping the result, then runs the second parser and produces the obtained
--- result.
---
--- This answer is precompleted to show you an example.
---
 -- >>> parse (between (is '[') (is ']') character) "[a]"
 -- Result >< 'a'
 --
@@ -45,11 +39,6 @@ between p1 p2 p3 = do
   _ <- p2
   return x
 
--- | Write a function that applies the given parser in between the two given
--- characters.
---
--- /Hint/: Use 'between' and 'charTok'.
---
 -- >>> parse (betweenCharTok '[' ']' character) "[a]"
 -- Result >< 'a'
 --
@@ -67,10 +56,6 @@ between p1 p2 p3 = do
 betweenCharTok :: Char -> Char -> Parser a -> Parser a
 betweenCharTok c1 c2 p = charTok c1 >> (p <* charTok c2)
 
--- | Write a function that parses 4 hex digits and return the character value.
---
--- This question is completed for you. Make sure understand this before moving on
---
 -- >>> parse hex "0010"
 -- Result >< '\DLE'
 --
@@ -87,11 +72,6 @@ hex = thisMany 4 (satisfy isHexDigit) >>= (\d -> case readHex d of
   Just (x,_) -> pure $ chr x
   Nothing -> failed $ UnexpectedString d)
 
--- | Write a function that parses the character @u@ followed by 4 hex digits
--- and returns the character value.
---
--- /Hint/: Use 'is' and 'hex'.
---
 -- >>> parse hexu "u0010"
 -- Result >< '\DLE'
 --
@@ -109,12 +89,6 @@ hex = thisMany 4 (satisfy isHexDigit) >>= (\d -> case readHex d of
 hexu :: Parser Char
 hexu = is 'u' >> hex
 
--- | Return a parser that produces the given special character.
---
--- /Hint/: use 'toSpecialCharacter' and 'fromSpecialCharacter'.
---
--- /Hint/: Look at hex above
---
 -- >>> parse specialChar "b"
 -- Result >< '\b'
 --
@@ -129,11 +103,6 @@ specialChar = character >>= (\d -> case fromSpecialCharacter <$> toSpecialCharac
   Nothing -> failed $ UnexpectedString [d]
   )
 
--- | Parse a special character or a hexadecimal in JSON, has to start with
--- @\\@. See <http://json.org> for the full list of control characters in JSON.
---
--- /Hint/: Use 'hexu' and 'specialChar'.
---
 -- >>> parse jsonSpecial "\\u0af3"
 -- Result >< '\2803'
 --
@@ -145,9 +114,6 @@ specialChar = character >>= (\d -> case fromSpecialCharacter <$> toSpecialCharac
 jsonSpecial :: Parser Char
 jsonSpecial = specialChar >> (hexu ||| specialChar)
 
--- | Parse a JSON string. Handle double-quotes, special characters, hexadecimal
--- characters.
---
 -- /Hint/: Use 'between', 'is', 'charTok', 'noneof', 'jsonSpecial'.
 --
 -- /Hint/: The inner parser needs to /fail/ in order to trigger the second
@@ -214,8 +180,6 @@ jsonNumber = tok (P $ \s -> case readFloats s of
 
 -- | Parse a JSON true literal.
 --
--- /Hint/: Use 'stringTok'.
---
 -- >>> parse jsonTrue "true"
 -- Result >< "true"
 --
@@ -225,8 +189,6 @@ jsonTrue :: Parser String
 jsonTrue = stringTok "true"
 
 -- | Parse a JSON false literal.
---
--- /Hint/: Use 'stringTok'.
 --
 -- >>> parse jsonFalse "false"
 -- Result >< "false"
@@ -238,8 +200,6 @@ jsonFalse = stringTok "false"
 
 -- | Parse a JSON null literal.
 --
--- /Hint/: Use 'stringTok'.
---
 -- >>> parse jsonNull "null"
 -- Result >< "null"
 --
@@ -248,9 +208,6 @@ jsonFalse = stringTok "false"
 jsonNull :: Parser String
 jsonNull = stringTok "null"
 
--- | Write a parser that parses between the two given characters, separated by
--- a comma character ','.
---
 -- /Hint/: Use 'betweenCharTok', 'sepby' and 'commaTok'.
 --
 -- >>> parse (betweenSepbyComma '[' ']' lower) "[a]"
@@ -278,8 +235,6 @@ betweenSepbyComma c1 c2 p = betweenCharTok c1 c2 (sepby p commaTok)
 
 -- | Parse a JSON array.
 --
--- /Hint/: Use 'betweenSepbyComma' and 'jsonValue'.
---
 -- >>> parse jsonArray "[]"
 -- Result >< []
 --
@@ -299,12 +254,6 @@ jsonArray = betweenSepbyComma '[' ']' jsonValue
 
 -- | Parse a JSON object.
 --
--- /Hint/: Use 'jsonString', 'charTok', 'betweenSepbyComma' and 'jsonValue'.
---
--- /Hint/: Remember the type of 'Assoc' = @[(String, JsonValue)]@.
---
--- /Hint/: Use anonymous apply '<*' to omit tokens.
---
 -- >>> parse jsonObject "{}"
 -- Result >< []
 --
@@ -321,14 +270,6 @@ jsonObject = betweenSepbyComma '{' '}' (((,) <$> (jsonString <* charTok ':')) <*
 
 -- | Parse a JSON value.
 --
--- /Hint/: Use 'spaces', 'jsonNull', 'jsonTrue', 'jsonFalse', 'jsonArray',
--- 'jsonString', 'jsonObject' and 'jsonNumber'.
--- This function is half done. Please add the rest of the cases.
---
--- /Hint/: Use anonymous map '<$' to "type-hint" your literals.
---
--- /Hint/: Use fmap '<$>' to "type-hint" your values.
---
 -- >>> parse jsonValue "true"
 -- Result >< JsonTrue
 --
@@ -343,7 +284,5 @@ jsonValue = spaces >> ((JsonTrue <$ jsonTrue) ||| (JsonFalse <$ jsonFalse) ||| (
                        (JsonObject <$> jsonObject))
 
 -- | Read a file into a JSON value.
---
--- /Hint/: Use 'readFile' and 'jsonValue'.
 readJsonValue :: FilePath -> IO (ParseResult JsonValue)
 readJsonValue f = parse jsonValue <$> readFile f
